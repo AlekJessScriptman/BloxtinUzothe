@@ -1,412 +1,137 @@
--- Alek Paphawin Prajit Saksit Siva Hub v4 (Blox Fruits Specific)
+-- Alek Paphawin Prajit Hub v5 (Stable Edition for Blox Fruits)
 
--- Services
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
+-- Services local Players = game:GetService("Players") local LocalPlayer = Players.LocalPlayer local TweenService = game:GetService("TweenService") local RunService = game:GetService("RunService") local UserInputService = game:GetService("UserInputService") local ReplicatedStorage = game:GetService("ReplicatedStorage") local Workspace = game:GetService("Workspace") local StarterGui = game:GetService("StarterGui")
 
--- Remotes (Blox Fruits specific)
-local RemoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
-local BuyFruitEvent = RemoteEvents:WaitForChild("BuyFruit")
-local TradeEvent = RemoteEvents:WaitForChild("TradeEvent")
-local SummonFruitEvent = RemoteEvents:WaitForChild("SummonFruit")
+-- Remotes local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents") or Instance.new("Folder", ReplicatedStorage) local BuyFruitEvent = RemoteEvents:FindFirstChild("BuyFruit") local TradeEvent = RemoteEvents:FindFirstChild("TradeEvent") local SummonFruitEvent = RemoteEvents:FindFirstChild("SummonFruit")
 
--- GUI Setup
-local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-gui.Name = "AlekPaphawinPrajitHub"
-gui.ResetOnSpawn = false
+-- Rare Fruit List local rareFruits = { "Dragon", "Kitsune", "Yeti", "Leopard", "Spirit", "Gas", "Control", "Venom", "Shadow", "Dough", "T-rex", "Mammoth", "Gravity", "Blizzard", "Pain", "Rumble", "Portal", "Phoenix", "Sound", "Spider", "Creation", "Love", "Buddha", "Quake", "Magma", "Rubber", "Light", "Eagle", "Dark", "Sand" }
 
--- Scrollable Frame Setup
-local scrollFrame = Instance.new("ScrollingFrame", gui)
-scrollFrame.Size = UDim2.new(0, 350, 0, 550)
-scrollFrame.Position = UDim2.new(0, 20, 0.2, 0)
-scrollFrame.CanvasSize = UDim2.new(0, 0, 5, 0)
-scrollFrame.ScrollBarThickness = 8
-scrollFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-scrollFrame.Active = true
-scrollFrame.BorderSizePixel = 0
-scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-scrollFrame.ClipsDescendants = true
-scrollFrame.ZIndex = 10
+-- UI Setup local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui")) gui.Name = "AlekPaphawinPrajitHub" gui.ResetOnSpawn = false
 
--- Dragging support for menu window
-local dragging, dragInput, dragStart, startPos = false, nil, nil, nil
-scrollFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = scrollFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
-        end)
-    end
-end)
-scrollFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        scrollFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
+local scrollFrame = Instance.new("ScrollingFrame", gui) scrollFrame.Size = UDim2.new(0, 350, 0, 550) scrollFrame.Position = UDim2.new(0, 20, 0.2, 0) scrollFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30) scrollFrame.BorderSizePixel = 0 scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y scrollFrame.CanvasSize = UDim2.new(0, 0, 5, 0) scrollFrame.ScrollBarThickness = 8 scrollFrame.ClipsDescendants = true
 
--- Container inside scroll frame
-local container = Instance.new("Frame", scrollFrame)
-container.Size = UDim2.new(1, 0, 0, 2600)
-container.BackgroundTransparency = 1
-container.Name = "Container"
+-- Drag support local dragging, dragStart, startPos scrollFrame.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true dragStart = input.Position startPos = scrollFrame.Position input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end) end end) UserInputService.InputChanged:Connect(function(input) if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then local delta = input.Position - dragStart scrollFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
 
-local layout = Instance.new("UIListLayout", container)
-layout.Padding = UDim.new(0, 8)
-layout.SortOrder = Enum.SortOrder.LayoutOrder
+-- Container local container = Instance.new("Frame", scrollFrame) container.Size = UDim2.new(1, 0, 0, 3000) container.BackgroundTransparency = 1
 
--- Utility functions for UI elements
-local function createLabel(text)
-    local label = Instance.new("TextLabel", container)
-    label.Size = UDim2.new(1, -20, 0, 28)
-    label.Text = text
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 18
-    label.TextColor3 = Color3.new(1, 1, 1)
-    label.BackgroundTransparency = 1
-    return label
-end
+local layout = Instance.new("UIListLayout", container) layout.Padding = UDim.new(0, 5) layout.SortOrder = Enum.SortOrder.LayoutOrder
 
-local function createTextBox(placeholder)
-    local box = Instance.new("TextBox", container)
-    box.Size = UDim2.new(1, -20, 0, 30)
-    box.PlaceholderText = placeholder
-    box.Font = Enum.Font.Gotham
-    box.TextSize = 14
-    box.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    box.TextColor3 = Color3.new(1, 1, 1)
-    box.ClearTextOnFocus = false
-    return box
-end
+-- Helper UI local function createLabel(text) local lbl = Instance.new("TextLabel", container) lbl.Size = UDim2.new(1, -20, 0, 25) lbl.Text = text lbl.Font = Enum.Font.GothamBold lbl.TextSize = 16 lbl.TextColor3 = Color3.new(1,1,1) lbl.BackgroundTransparency = 1 end
 
-local function createToggleButton(text, callback)
-    local on = false
-    local btn = Instance.new("TextButton", container)
-    btn.Size = UDim2.new(1, -20, 0, 38)
-    btn.Text = "[OFF] " .. text
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 14
-    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.AutoButtonColor = true
-    btn.MouseButton1Click:Connect(function()
-        on = not on
-        btn.Text = (on and "[ON] " or "[OFF] ") .. text
-        callback(on)
-    end)
-    return btn
-end
+local function createTextBox(placeholder) local tb = Instance.new("TextBox", container) tb.Size = UDim2.new(1, -20, 0, 30) tb.PlaceholderText = placeholder tb.Font = Enum.Font.Gotham tb.TextSize = 14 tb.BackgroundColor3 = Color3.fromRGB(50, 50, 50) tb.TextColor3 = Color3.new(1,1,1) tb.ClearTextOnFocus = false return tb end
 
-local function createButton(text, callback)
-    local btn = Instance.new("TextButton", container)
-    btn.Size = UDim2.new(1, -20, 0, 38)
-    btn.Text = text
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 15
-    btn.BackgroundColor3 = Color3.fromRGB(75, 75, 75)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.AutoButtonColor = true
-    btn.MouseButton1Click:Connect(callback)
-    return btn
-end
+local function createToggleButton(name, callback) local toggled = false local btn = Instance.new("TextButton", container) btn.Size = UDim2.new(1, -20, 0, 35) btn.Text = "[OFF] " .. name btn.Font = Enum.Font.Gotham btn.TextSize = 14 btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60) btn.TextColor3 = Color3.new(1,1,1) btn.MouseButton1Click:Connect(function() toggled = not toggled btn.Text = (toggled and "[ON] " or "[OFF] ") .. name pcall(callback, toggled) end) end
 
--- Variables for toggles and control
-local farming = false
-local autoAttack = false
-local freezeTrade = false
-local following = false
-local aimbotOn = false
-local autoAcceptTrade = false
-local autoAddFruitsInTrade = false
-local autoCollectChest = false
-local freeShopping = false
-local equipFruitToggle = false
+-- Toggle GUI local toggleBtn = Instance.new("TextButton", gui) toggleBtn.Size = UDim2.new(0, 120, 0, 30) toggleBtn.Position = UDim2.new(0, 20, 0.05, 0) toggleBtn.Text = "Hide Menu" toggleBtn.BackgroundColor3 = Color3.fromRGB(40,40,40) toggleBtn.TextColor3 = Color3.new(1,1,1) toggleBtn.Font = Enum.Font.Gotham
 
--- Tween max speed
-local tweenMaxSpeed = 250
+toggleBtn.MouseButton1Click:Connect(function() scrollFrame.Visible = not scrollFrame.Visible toggleBtn.Text = scrollFrame.Visible and "Hide Menu" or "Show Menu" end)
 
--- Menu visible toggle button
-local menuVisible = true
-local toggleGuiButton = Instance.new("TextButton", gui)
-toggleGuiButton.Size = UDim2.new(0, 120, 0, 30)
-toggleGuiButton.Position = UDim2.new(0, 20, 0.1, 0)
-toggleGuiButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-toggleGuiButton.TextColor3 = Color3.new(1,1,1)
-toggleGuiButton.Text = "Hide Menu"
-toggleGuiButton.Font = Enum.Font.Gotham
-toggleGuiButton.TextSize = 16
-toggleGuiButton.ZIndex = 20
-toggleGuiButton.AutoButtonColor = true
-toggleGuiButton.MouseButton1Click:Connect(function()
-    menuVisible = not menuVisible
-    scrollFrame.Visible = menuVisible
-    toggleGuiButton.Text = menuVisible and "Hide Menu" or "Show Menu"
-end)
+-- States local states = { farming = false, autoAttack = false, follow = false, aimbot = false, autoTradeAccept = false, autoFruitTrade = false, autoCollectChest = false, equipFruit = false, freeShop = false }
 
--- UI Elements --
+-- Inputs local npcBox = createTextBox("Enter NPC name") local speedBox = createTextBox("Tween speed (max 250)") speedBox.Text = "150" local fruitBox = createTextBox("Fruit name") local followBox = createTextBox("Player name")
 
-createLabel("❄️ Freeze Trade System")
-createToggleButton("Freeze Trade Window", function(active)
-    freezeTrade = active
-    print("[Freeze Trade] Set to", active)
-end)
+-- Toggles createLabel("⚔️ Auto Farm") createToggleButton("Auto Farm", function(on) states.farming = on end) createToggleButton("Auto Attack", function(on) states.autoAttack = on end)
 
-createToggleButton("Auto Add Fruits in Trade", function(active)
-    autoAddFruitsInTrade = active
-end)
+createLabel("🍉 Equip Fruit") createToggleButton("Equip Fruit", function(on) states.equipFruit = on end)
 
-createToggleButton("Auto Accept Trade", function(active)
-    autoAcceptTrade = active
-end)
+createLabel("👣 Follow Player") createToggleButton("Follow", function(on) states.follow = on end)
 
-createToggleButton("Auto Attack", function(active)
-    autoAttack = active
-end)
+createLabel("🎯 Aimbot") createToggleButton("Aimbot", function(on) states.aimbot = on end)
 
-createLabel("⚔️ Auto Farm")
-local npcInput = createTextBox("Enter NPC Name to Farm")
-createToggleButton("Auto Farm", function(active)
-    farming = active
-end)
+createLabel("💰 Auto Trade") createToggleButton("Auto Add Fruits", function(on) states.autoFruitTrade = on end) createToggleButton("Auto Accept Trade", function(on) states.autoTradeAccept = on end)
 
-createLabel("🎯 Tween Speed (max 250)")
-local tweenSpeedBox = createTextBox("Tween speed number (default 100)")
-tweenSpeedBox.Text = "100"
+createLabel("📦 Collect Chest") createToggleButton("Auto Collect Chest", function(on) states.autoCollectChest = on end)
 
-createLabel("🍉 Equip Fruit Changer")
-local fruitInput = createTextBox("Enter Fruit Name")
-createToggleButton("Equip Fruit", function(active)
-    equipFruitToggle = active
-    if equipFruitToggle then
-        local backpack = LocalPlayer:FindFirstChild("Backpack")
-        local fruit = backpack and backpack:FindFirstChild(fruitInput.Text)
-        if fruit and LocalPlayer.Character then
-            fruit.Parent = LocalPlayer.Character
-            print("[Equip Fruit] Equipped:", fruitInput.Text)
-        else
-            warn("[Equip Fruit] Fruit not found:", fruitInput.Text)
+createLabel("🛍️ Free Shopping") createToggleButton("Free Shop", function(on) states.freeShop = on end)
+
+-- Utility local lastEquip = 0 local notified = {} local function getCharacter() return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait() end
+
+-- Main Loop RunService.Heartbeat:Connect(function() local char = getCharacter() local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
+if states.farming and npcBox.Text ~= "" and hrp then
+    for _, npc in pairs(Workspace:GetChildren()) do
+        if npc:IsA("Model") and npc.Name == npcBox.Text and npc:FindFirstChild("HumanoidRootPart") then
+            local targetPos = npc.HumanoidRootPart.Position
+            local speed = math.clamp(tonumber(speedBox.Text) or 100, 10, 250)
+            local dist = (hrp.Position - targetPos).Magnitude
+            local time = dist / speed
+            TweenService:Create(hrp, TweenInfo.new(time), {CFrame = CFrame.new(targetPos + Vector3.new(0,3,0))}):Play()
+            break
         end
     end
-end)
+end
 
-createLabel("👣 Follow Player")
-local followInput = createTextBox("Enter Player Name")
-createToggleButton("Follow Player", function(active)
-    following = active
-end)
+if states.autoAttack then
+    local tool = char:FindFirstChildOfClass("Tool")
+    if tool then pcall(function() tool:Activate() end) end
+end
 
-createLabel("🎯 Aimbot")
-createToggleButton("Enable Aimbot", function(active)
-    aimbotOn = active
-end)
-
-createToggleButton("Auto Collect Chests", function(active)
-    autoCollectChest = active
-end)
-
-createToggleButton("Free Shopping (Robux)", function(active)
-    freeShopping = active
-    if freeShopping then
-        print("[Free Shopping] Enabled - Setting all item prices to 0 Robux")
-    end
-end)
-
-createButton("Summon Rare Fruit", function()
-    -- Example: Summon random rare fruit from list using RemoteEvent
-    local rareFruits = {
-        "Dragon", "Kitsune", "Yeti", "Leopard", "Spirit", "Gas", "Control", "Venom", "Shadow",
-        "Dough", "T-rex", "Mammoth", "Gravity", "Blizzard", "Pain", "Rumble", "Portal", "Phoenix",
-        "Sound", "Spider", "Creation", "Love", "Buddha", "Quake", "Magma", "Rubber", "Light",
-        "Eagle", "Dark", "Sand"
-    }
-    local chosenFruit = rareFruits[math.random(1, #rareFruits)]
-    print("[Fruit Summon] Summoning fruit:", chosenFruit)
-    -- Fire RemoteEvent (customize parameters per game)
-    if SummonFruitEvent then
-        SummonFruitEvent:FireServer(chosenFruit)
-    else
-        warn("SummonFruitEvent not found")
-    end
-end)
-
--- Helper Functions --
-
-local function collectChest(chest)
-    if chest and chest:IsA("Model") and chest:FindFirstChildWhichIsA("ClickDetector") then
-        fireclickdetector(chest:FindFirstChildWhichIsA("ClickDetector"))
-        print("[Chest] Collected chest:", chest.Name)
+if states.follow and followBox.Text ~= "" then
+    local plr = Players:FindFirstChild(followBox.Text)
+    if plr and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and hrp then
+        hrp.CFrame = CFrame.new(hrp.Position, plr.Character.HumanoidRootPart.Position)
     end
 end
 
-local function addFruitsToTrade()
-    if freezeTrade and autoAddFruitsInTrade then
-        local tradeGui = LocalPlayer.PlayerGui:FindFirstChild("TradeGui")
-        if tradeGui then
-            local tradeFrame = tradeGui:FindFirstChild("TradeFrame")
-            if tradeFrame then
-                local backpack = LocalPlayer:FindFirstChild("Backpack")
-                if backpack then
-                    for _, item in pairs(backpack:GetChildren()) do
-                        if item:IsA("Tool") and string.find(item.Name:lower(), "fruit") then
-                            local addButton = tradeFrame:FindFirstChild("Add" .. item.Name)
-                            if addButton and addButton:IsA("TextButton") then
-                                addButton:Activate()
-                                print("[Trade] Added fruit to trade:", item.Name)
-                            end
-                        end
-                    end
-                end
+if states.aimbot then
+    local cam = Workspace.CurrentCamera
+    local nearest, minDist = nil, math.huge
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+            local d = (cam.CFrame.Position - p.Character.Head.Position).Magnitude
+            if d < minDist then
+                nearest = p.Character.Head
+                minDist = d
+            end
+        end
+    end
+    if nearest then
+        cam.CFrame = CFrame.new(cam.CFrame.Position, nearest.Position)
+    end
+end
+
+if states.equipFruit and tick() - lastEquip > 2 then
+    lastEquip = tick()
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    local fruit = backpack and backpack:FindFirstChild(fruitBox.Text)
+    if fruit and not char:FindFirstChild(fruit.Name) then
+        fruit.Parent = char
+    end
+end
+
+if states.autoCollectChest then
+    for _, model in pairs(Workspace:GetChildren()) do
+        if model:IsA("Model") and model.Name:lower():find("chest") then
+            local cd = model:FindFirstChildWhichIsA("ClickDetector")
+            if cd then pcall(fireclickdetector, cd) end
+        end
+    end
+end
+
+if states.freeShop then
+    local gui = LocalPlayer.PlayerGui:FindFirstChild("ShopGui")
+    if gui then
+        for _, label in pairs(gui:GetDescendants()) do
+            if label:IsA("TextLabel") and label.Name:lower():find("price") then
+                label.Text = "0 Robux"
             end
         end
     end
 end
 
-local function autoAcceptTradeFunc()
-    if freezeTrade and autoAcceptTrade then
-        local tradeGui = LocalPlayer.PlayerGui:FindFirstChild("TradeGui")
-        if tradeGui then
-            local acceptButton = tradeGui:FindFirstChild("AcceptButton")
-            if acceptButton and acceptButton:IsA("TextButton") and acceptButton.Visible then
-                acceptButton:Activate()
-                print("[Trade] Auto accepted trade")
+-- Rare Fruit ESP / Notifier
+for _, item in pairs(Workspace:GetDescendants()) do
+    if (item:IsA("Tool") or item:IsA("Part")) and not notified[item] then
+        for _, name in pairs(rareFruits) do
+            if item.Name:lower():find(name:lower()) then
+                print("[ESP] Found rare fruit:", item.Name)
+                notified[item] = true
+                break
             end
         end
     end
 end
 
--- Rare Fruit list for notifier
-local rareFruits = {
-    "Dragon", "Kitsune", "Yeti", "Leopard", "Spirit", "Gas", "Control", "Venom", "Shadow",
-    "Dough", "T-rex", "Mammoth", "Gravity", "Blizzard", "Pain", "Rumble", "Portal", "Phoenix",
-    "Sound", "Spider", "Creation", "Love", "Buddha", "Quake", "Magma", "Rubber", "Light",
-    "Eagle", "Dark", "Sand"
-}
-
-local notifiedFruits = {}
-
--- Main loop
-RunService.Heartbeat:Connect(function()
-    local character = LocalPlayer.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    local hrp = character.HumanoidRootPart
-
-    -- Auto Farm Logic (Tween to NPC)
-    if farming then
-        for _, npc in pairs(Workspace:GetChildren()) do
-            if npc:IsA("Model") and npc.Name == npcInput.Text and npc:FindFirstChild("HumanoidRootPart") then
-                local targetPos = npc.HumanoidRootPart.Position
-                local tweenSpeed = tonumber(tweenSpeedBox.Text) or 100
-                tweenSpeed = math.clamp(tweenSpeed, 10, tweenMaxSpeed)
-                local distance = (hrp.Position - targetPos).Magnitude
-                local tweenTime = distance / tweenSpeed
-                TweenService:Create(hrp, TweenInfo.new(tweenTime), {CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))}):Play()
-                break -- only one target at a time
-            end
-        end
-    end
-
-    -- Auto Attack Logic
-    if autoAttack then
-        local tool = character:FindFirstChildOfClass("Tool")
-        if tool then
-            pcall(function() tool:Activate() end)
-        end
-    end
-
-    -- Follow Player Logic
-    if following then
-        local target = Players:FindFirstChild(followInput.Text)
-        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-            local targetPos = target.Character.HumanoidRootPart.Position
-            hrp.CFrame = CFrame.new(hrp.Position, targetPos) + (targetPos - hrp.Position).Unit * 3
-        end
-    end
-
-    -- Aimbot Logic
-    if aimbotOn then
-        local cam = workspace.CurrentCamera
-        local nearest = nil
-        local dist = math.huge
-        for _, plr in pairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
-                local head = plr.Character.Head
-                local d = (cam.CFrame.Position - head.Position).Magnitude
-                if d < dist then
-                    dist = d
-                    nearest = head
-                end
-            end
-        end
-        if nearest then
-            cam.CFrame = CFrame.new(cam.CFrame.Position, nearest.Position)
-        end
-    end
-
-    -- Auto Collect Chest Logic
-    if autoCollectChest then
-        for _, chest in pairs(Workspace:GetChildren()) do
-            if chest.Name:lower():find("chest") and chest:IsA("Model") then
-                collectChest(chest)
-            end
-        end
-    end
-
-    -- Auto Add Fruits To Trade Logic
-    if freezeTrade and autoAddFruitsInTrade then
-        addFruitsToTrade()
-    end
-
-    -- Auto Accept Trade Logic
-    if freezeTrade and autoAcceptTrade then
-        autoAcceptTradeFunc()
-    end
-
-    -- Equip fruit if toggle active (check if equipped, else equip)
-    if equipFruitToggle then
-        local backpack = LocalPlayer:FindFirstChild("Backpack")
-        local fruit = backpack and backpack:FindFirstChild(fruitInput.Text)
-        local characterHasFruit = character:FindFirstChild(fruitInput.Text)
-        if fruit and character and not characterHasFruit then
-            fruit.Parent = character
-            print("[Equip Fruit] Equipped:", fruitInput.Text)
-        end
-    end
-
-    -- Free Shopping logic: modify store prices in GUI to 0 (simulate free buy)
-    if freeShopping then
-        local shopGui = LocalPlayer.PlayerGui:FindFirstChild("ShopGui")
-        if shopGui then
-            for _, itemFrame in pairs(shopGui:GetDescendants()) do
-                if itemFrame:IsA("TextLabel") and itemFrame.Name == "PriceLabel" then
-                    itemFrame.Text = "0 Robux"
-                end
-            end
-        end
-    end
-
-    -- Fruit Notifier & ESP
-    for _, item in pairs(Workspace:GetDescendants()) do
-        if (item:IsA("Tool") or item:IsA("Part")) and not notifiedFruits[item] then
-            for _, fruitName in pairs(rareFruits) do
-                if item.Name:lower():find(fruitName:lower()) then
-                    print("[Rare Fruit Detected] " .. item.Name)
-                    -- TODO: Add ESP highlight here (game specific)
-                    notifiedFruits[item] = true
-                    break
-                end
-            end
-        end
-    end
 end)
 
-print("✅ Alek Paphawin Prajit Hub v4 (Blox Fruits) Loaded - All systems active")
+print("✅ Alek Paphawin Prajit Hub v5 Loaded - Stable Edition")
