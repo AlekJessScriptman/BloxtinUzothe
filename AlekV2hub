@@ -408,5 +408,3 @@ RunService.Heartbeat:Connect(function()
         end
     end
 end)
-
-print("✅ Alek Paphawin Prajit Hub v4 (Blox Fruits) Loaded - All systems active")
