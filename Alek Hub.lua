@@ -1,6 +1,6 @@
--- [ศักดิ์สิทธิ์] Alek Paphawin Prajit Hub v2 (Fixed Toggle Version)
+-- MrAlek Paphawin Prajit Hub v2 (Fixed Toggle Version)
 
---[[ 📦 Features Added: ✅ Toggle Open/Close Menu ✅ Resizable GUI ✅ Freeze Trade ✅ Force Accept เคนโด้ ✅ Auto Farm with target NPC name input (toggle) ✅ Auto Attack (toggle) ✅ Speed Test ✅ Damage Control via user input ✅ Fruit Equip changer ]]
+--[[ 📦 Features Added: ✅ Toggle Open/Close Menu ✅ Resizable GUI ✅ Freeze Trade ✅ Napat Kittitrash Kendo Siva Pakorn ✅ Auto Farm with target NPC name input (toggle) ✅ Auto Attack (toggle) ✅ Speed Test ✅ Damage Control via user input ✅ Fruit Equip changer ]]
 
 --===[ Utilities ]===-- local Players = game:GetService("Players") local LocalPlayer = Players.LocalPlayer local TweenService = game:GetService("TweenService") local RunService = game:GetService("RunService")
 
