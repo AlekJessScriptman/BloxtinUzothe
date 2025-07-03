@@ -1,17 +1,18 @@
--- Alek Paphawin Prajit Hub v1 (Full Jes Creator, Saksit)
+-- Alek Paphawin Prajit Hub v5 (With Auto Attack)
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 -- GUI Setup
 local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-gui.Name = "AlekPaphawinPrajitHub"
+gui.Name = "AlekPaphawinPrajitHubBySaksit"
 gui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 300, 0, 680)
+frame.Size = UDim2.new(0, 300, 0, 720)
 frame.Position = UDim2.new(0, 20, 0.3, 0)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
@@ -22,7 +23,7 @@ frame.Visible = true
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 40)
 title.BackgroundTransparency = 1
-title.Text = "🔰 Alek Paphawin Prajit Hub v4"
+title.Text = "🔰 Alek Paphawin Prajit Hub v5"
 title.Font = Enum.Font.GothamBold
 title.TextColor3 = Color3.new(1, 1, 1)
 title.TextSize = 18
@@ -40,7 +41,7 @@ sizeSlider.TextColor3 = Color3.new(1, 1, 1)
 sizeSlider.FocusLost:Connect(function()
     local val = tonumber(sizeSlider.Text)
     if val then
-        frame.Size = UDim2.new(0, val, 0, val + 380)
+        frame.Size = UDim2.new(0, val, 0, val + 420)
     end
 end)
 
@@ -207,7 +208,7 @@ end
 -- Fruit Equip Changer
 local fruitInput = Instance.new("TextBox", frame)
 fruitInput.Size = UDim2.new(1, -20, 0, 30)
-fruitInput.Position = UDim2.new(0, 10, 0, 520)
+fruitInput.Position = UDim2.new(0, 10, 0, 540)
 fruitInput.PlaceholderText = "Enter Fruit Name to Equip"
 fruitInput.Font = Enum.Font.Gotham
 fruitInput.TextSize = 14
@@ -227,85 +228,7 @@ local function EquipFruit(fruitName)
     end
 end
 
-local function createButton(text, posY, callback)
-    local btn = Instance.new("TextButton", frame)
-    btn.Size = UDim2.new(1, -20, 0, 40)
-    btn.Position = UDim2.new(0, 10, 0, posY)
-    btn.Text = text
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 16
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    btn.MouseButton1Click:Connect(callback)
-end
-
-createButton("❄️ Freeze Trade", 100, FreezeTrade)
-
-local npcInput = Instance.new("TextBox", frame)
-npcInput.Size = UDim2.new(1, -20, 0, 30)
-npcInput.Position = UDim2.new(0, 10, 0, 150)
-npcInput.PlaceholderText = "Enter NPC name (case sensitive)"
-npcInput.Font = Enum.Font.Gotham
-npcInput.TextSize = 14
-npcInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-npcInput.TextColor3 = Color3.new(1, 1, 1)
-
-createButton("⚔️ Start Auto Farm", 190, function()
-    if npcInput.Text ~= "" then
-        AutoFarm(npcInput.Text)
-    else
-        warn("Please enter a valid NPC name.")
-    end
-end)
-
-createButton("🛑 Stop Auto Farm", 240, StopAutoFarm)
-
-local aimbotToggle = Instance.new("TextButton", frame)
-aimbotToggle.Size = UDim2.new(1, -20, 0, 40)
-aimbotToggle.Position = UDim2.new(0, 10, 0, 290)
-aimbotToggle.Text = "🎯 Toggle Aimbot"
-aimbotToggle.Font = Enum.Font.Gotham
-aimbotToggle.TextSize = 16
-aimbotToggle.TextColor3 = Color3.new(1, 1, 1)
-aimbotToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-aimbotToggle.MouseButton1Click:Connect(function()
-    aimbotEnabled = not aimbotEnabled
-    aimbotTargetName = npcInput.Text ~= "" and npcInput.Text or nil
-    print("Aimbot enabled:", aimbotEnabled)
-end)
-
-local speedInput = Instance.new("TextBox", frame)
-speedInput.Size = UDim2.new(1, -20, 0, 30)
-speedInput.Position = UDim2.new(0, 10, 0, 370)
-speedInput.PlaceholderText = "Tween Speed (e.g. 50)"
-speedInput.Font = Enum.Font.Gotham
-speedInput.TextSize = 14
-speedInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-speedInput.TextColor3 = Color3.new(1, 1, 1)
-
-speedInput.FocusLost:Connect(function()
-    local val = tonumber(speedInput.Text)
-    if val and val > 0 then
-        tweenSpeed = val
-        print("Tween speed set to:", tweenSpeed)
-    else
-        warn("Invalid tween speed value")
-    end
-end)
-
-createButton("🍍 Start Auto Tween Fruits", 410, AutoTweenFruits)
-createButton("⏹ Stop Auto Tween Fruits", 450, StopAutoTweenFruits)
-
-createButton("🥭 Equip Fruit", 560, function()
-    if fruitInput.Text ~= "" then
-        EquipFruit(fruitInput.Text)
-    else
-        warn("Please enter a fruit name")
-    end
-end)
-
 -- Follow Player System
-
 local targetPlayerInput = Instance.new("TextBox", frame)
 targetPlayerInput.Size = UDim2.new(1, -20, 0, 30)
 targetPlayerInput.Position = UDim2.new(0, 10, 0, 600)
@@ -346,7 +269,157 @@ local function StopFollowPlayer()
     followRunning = false
 end
 
-createButton("🏃 Start Follow Player", 640, function()
+-- Auto Attack
+local autoAttackRunning = false
+
+local function GetNearestNPC(maxDistance)
+    maxDistance = maxDistance or 20
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return nil end
+    local hrp = character.HumanoidRootPart
+
+    local nearestNPC = nil
+    local nearestDist = maxDistance
+
+    for _, npc in pairs(workspace:GetDescendants()) do
+        if npc:IsA("Model") and npc ~= character and npc:FindFirstChild("Humanoid") and npc.Humanoid.Health > 0 and npc:FindFirstChild("HumanoidRootPart") then
+            local dist = (npc.HumanoidRootPart.Position - hrp.Position).Magnitude
+            if dist < nearestDist then
+                nearestDist = dist
+                nearestNPC = npc
+            end
+        end
+    end
+
+    return nearestNPC
+end
+
+local function AutoAttack()
+    if autoAttackRunning then
+        warn("[AutoAttack] Already running")
+        return
+    end
+    autoAttackRunning = true
+
+    spawn(function()
+        while autoAttackRunning do
+            local character = LocalPlayer.Character
+            local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+            local hrp = character and character:FindFirstChild("HumanoidRootPart")
+            if humanoid and hrp then
+                local targetNPC = GetNearestNPC(20)
+                if targetNPC and targetNPC:FindFirstChild("HumanoidRootPart") then
+                    -- Face NPC
+                    hrp.CFrame = CFrame.new(hrp.Position, targetNPC.HumanoidRootPart.Position)
+
+                    -- Attack by firing tool activation if possible
+                    local tool = character:FindFirstChildOfClass("Tool")
+                    if tool and tool:FindFirstChild("Handle") then
+                        tool:Activate()
+                    end
+                end
+            end
+            wait(0.3) -- attack interval
+        end
+    end)
+end
+
+local function StopAutoAttack()
+    autoAttackRunning = false
+end
+
+-- Create Button Helper
+local function createButton(text, posY, callback)
+    local btn = Instance.new("TextButton", frame)
+    btn.Size = UDim2.new(1, -20, 0, 40)
+    btn.Position = UDim2.new(0, 10, 0, posY)
+    btn.Text = text
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 16
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.MouseButton1Click:Connect(callback)
+end
+
+-- Buttons and Inputs
+
+createButton("Kendo Freeze Trade", 100, FreezeTrade)
+
+local npcInput = Instance.new("TextBox", frame)
+npcInput.Size = UDim2.new(1, -20, 0, 30)
+npcInput.Position = UDim2.new(0, 10, 0, 150)
+npcInput.PlaceholderText = "Enter NPC name (case sensitive)"
+npcInput.Font = Enum.Font.Gotham
+npcInput.TextSize = 14
+npcInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+npcInput.TextColor3 = Color3.new(1, 1, 1)
+
+createButton("⚔️ Start Auto Farm", 190, function()
+    if npcInput.Text ~= "" then
+        AutoFarm(npcInput.Text)
+    else
+        warn("Please enter a valid NPC name.")
+    end
+end)
+
+createButton("🛑 Stop Auto Farm", 240, StopAutoFarm)
+
+local aimbotToggle = Instance.new("TextButton", frame)
+aimbotToggle.Size = UDim2.new(1, -20, 0, 40)
+aimbotToggle.Position = UDim2.new(0, 10, 0, 290)
+aimbotToggle.Text = " Alek Toggle Aimbot"
+aimbotToggle.Font = Enum.Font.Gotham
+aimbotToggle.TextSize = 16
+aimbotToggle.TextColor3 = Color3.new(1, 1, 1)
+aimbotToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+aimbotToggle.MouseButton1Click:Connect(function()
+    aimbotEnabled = not aimbotEnabled
+    aimbotTargetName = npcInput.Text ~= "" and npcInput.Text or nil
+    print("Aimbot enabled:", aimbotEnabled)
+end)
+
+local speedInput = Instance.new("TextBox", frame)
+speedInput.Size = UDim2.new(1, -20, 0, 30)
+speedInput.Position = UDim2.new(0, 10, 0, 370)
+speedInput.PlaceholderText = "Tween Speed (e.g. 50)"
+speedInput.Font = Enum.Font.Gotham
+speedInput.TextSize = 14
+speedInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+speedInput.TextColor3 = Color3.new(1, 1, 1)
+
+speedInput.FocusLost:Connect(function()
+    local val = tonumber(speedInput.Text)
+    if val and val > 0 then
+        tweenSpeed = val
+        print("Tween speed set to:", tweenSpeed)
+    else
+        warn("Invalid tween speed value")
+    end
+end)
+
+createButton("🍍 Saksit Auto Tween Fruits", 410, AutoTweenFruits)
+createButton(" Kendo Stop Auto Tween Fruits", 450, StopAutoTweenFruits)
+
+createButton("Alek Equip Fruit", 560, function()
+    if fruitInput.Text ~= "" then
+        EquipFruit(fruitInput.Text)
+    else
+        warn("Please enter a fruit name")
+    end
+end)
+
+local fruitInput = fruitInput -- Already created above
+
+local targetPlayerInput = Instance.new("TextBox", frame)
+targetPlayerInput.Size = UDim2.new(1, -20, 0, 30)
+targetPlayerInput.Position = UDim2.new(0, 10, 0, 600)
+targetPlayerInput.PlaceholderText = "Enter Player Name to Follow"
+targetPlayerInput.Font = Enum.Font.Gotham
+targetPlayerInput.TextSize = 14
+targetPlayerInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+targetPlayerInput.TextColor3 = Color3.new(1, 1, 1)
+
+createButton(" Start Follow Player", 640, function()
     local name = targetPlayerInput.Text
     if name ~= "" then
         FollowPlayer(name)
@@ -355,4 +428,7 @@ createButton("🏃 Start Follow Player", 640, function()
     end
 end)
 
-createButton("🛑 Stop Follow Player", 680, StopFollowPlayer)
+createButton("Siva Follow Player", 680, StopFollowPlayer)
+
+createButton("⚔️ Start Auto Attack", 520, AutoAttack)
+createButton("🛑 Stop Auto Attack", 560, StopAutoAttack)
