@@ -1,0 +1,118 @@
+-- Narawich Marum Rottended Hub (PvP Script for Blox Fruits with Advanced Features)
+
+-- SERVICES --
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+-- REMOTES --
+local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents") or Instance.new("Folder", ReplicatedStorage)
+local SummonFruitEvent = RemoteEvents:FindFirstChild("SummonFruit")
+
+-- CONSTANTS --
+local MAX_TWEEN_SPEED = 240
+local rareFruits = {"Dragon","Kitsune","Leopard","Yeti","Gas","Dough","Gravity","Buddha"}
+
+-- UI SETUP --
+local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "NarawichMarumdeeXgirls"
+gui.ResetOnSpawn = false
+
+local toggleBtn = Instance.new("TextButton", gui)
+toggleBtn.Size = UDim2.new(0, 120, 0, 30)
+toggleBtn.Position = UDim2.new(0, 20, 0.05, 0)
+toggleBtn.Text = "Hide Menu"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleBtn.Font = Enum.Font.Gotham
+
+local scrollFrame = Instance.new("ScrollingFrame", gui)
+scrollFrame.Size = UDim2.new(0, 350, 0, 550)
+scrollFrame.Position = UDim2.new(0, 20, 0.2, 0)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+scrollFrame.BorderSizePixel = 0
+scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scrollFrame.CanvasSize = UDim2.new(0, 0, 5, 0)
+scrollFrame.ScrollBarThickness = 6
+scrollFrame.ClipsDescendants = true
+scrollFrame.Active = true
+
+-- Toggle visibility
+scrollFrame.Visible = true
+toggleBtn.MouseButton1Click:Connect(function()
+    scrollFrame.Visible = not scrollFrame.Visible
+    toggleBtn.Text = scrollFrame.Visible and "Hide Menu" or "Show Menu"
+end)
+
+-- DRAG SUPPORT --
+local dragging, dragStart, startPos
+scrollFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = scrollFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        scrollFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- CONTAINER & LAYOUT --
+local container = Instance.new("Frame", scrollFrame)
+container.Size = UDim2.new(1, 0, 0, 3000)
+container.BackgroundTransparency = 1
+
+local layout = Instance.new("UIListLayout", container)
+layout.Padding = UDim.new(0, 6)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- TEMPLATE UI FUNCTIONS --
+local function createLabel(text)
+    local lbl = Instance.new("TextLabel", container)
+    lbl.Size = UDim2.new(1, -20, 0, 26)
+    lbl.Text = text
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 16
+    lbl.TextColor3 = Color3.new(1, 1, 1)
+    lbl.BackgroundTransparency = 1
+end
+
+local function createTextBox(placeholder)
+    local box = Instance.new("TextBox", container)
+    box.Size = UDim2.new(1, -20, 0, 28)
+    box.PlaceholderText = placeholder
+    box.Font = Enum.Font.Gotham
+    box.TextSize = 14
+    box.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    box.TextColor3 = Color3.new(1, 1, 1)
+    box.ClearTextOnFocus = false
+    return box
+end
+
+local function createToggleButton(text, callback)
+    local toggled = false
+    local btn = Instance.new("TextButton", container)
+    btn.Size = UDim2.new(1, -20, 0, 32)
+    btn.Text = "[OFF] " .. text
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        btn.Text = (toggled and "[ON] " or "[OFF] ") .. text
+        pcall(callback, toggled)
+    end)
+end
+
+print("✅ Narawich Marum Rottended Hub (base) loaded.")
