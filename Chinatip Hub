@@ -10,15 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
--- REMOTES --
-local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents") or Instance.new("Folder", ReplicatedStorage)
-local SummonFruitEvent = RemoteEvents:FindFirstChild("SummonFruit")
-
--- CONSTANTS --
-local MAX_TWEEN_SPEED = 240
-local rareFruits = {"Dragon", "Kitsune", "Leopard", "Yeti", "Gas", "Dough", "Gravity", "Buddha", "T-rex"}
-
--- UI SETUP --
+-- UI SETUP (เหมือนเดิม) --
 local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 gui.Name = "ChinatipHubV1"
 gui.ResetOnSpawn = false
@@ -48,7 +40,7 @@ toggleBtn.MouseButton1Click:Connect(function()
     toggleBtn.Text = scrollFrame.Visible and "Hide Menu" or "Show Menu"
 end)
 
--- DRAG SUPPORT --
+-- DRAG SUPPORT (เหมือนเดิม) --
 local dragging, dragStart, startPos
 scrollFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -71,7 +63,6 @@ end)
 local container = Instance.new("Frame", scrollFrame)
 container.Size = UDim2.new(1, 0, 0, 3000)
 container.BackgroundTransparency = 1
-
 local layout = Instance.new("UIListLayout", container)
 layout.Padding = UDim.new(0, 6)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -85,18 +76,6 @@ local function createLabel(text)
     lbl.TextSize = 16
     lbl.TextColor3 = Color3.new(1, 1, 1)
     lbl.BackgroundTransparency = 1
-end
-
-local function createTextBox(placeholder)
-    local box = Instance.new("TextBox", container)
-    box.Size = UDim2.new(1, -20, 0, 28)
-    box.PlaceholderText = placeholder
-    box.Font = Enum.Font.Gotham
-    box.TextSize = 14
-    box.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    box.TextColor3 = Color3.new(1, 1, 1)
-    box.ClearTextOnFocus = false
-    return box
 end
 
 local function createToggleButton(text, callback)
@@ -116,39 +95,91 @@ local function createToggleButton(text, callback)
     return btn
 end
 
--- STATE --
+-- STATES --
 local keyStates = {
     Z = {toggle = false, hold = false},
     X = {toggle = false, hold = false},
     C = {toggle = false, hold = false},
     V = {toggle = false, hold = false},
     F = {toggle = false, hold = false},
-    Tab = {toggle = false, hold = false}
+    Tap = {toggle = false, hold = false} -- Tap คือกดเมาส์ซ้าย (M1)
 }
 
--- KEYBIND TOGGLE UI --
+-- UI SETUP KEYBINDS --
 createLabel("🔘 Auto Skill Keys")
-for _, key in ipairs({"Z", "X", "C", "V", "F", "Tab"}) do
+
+for _, key in ipairs({"Z", "X", "C", "V", "F", "Tap"}) do
     createToggleButton("Auto Press " .. key, function(on)
         keyStates[key].toggle = on
     end)
-    createToggleButton("Hold Key " .. key, function(on)
+    createToggleButton("Hold " .. key, function(on)
         keyStates[key].hold = on
     end)
 end
 
--- INPUT LOOP --
+-- HELPER FUNCTION FOR VIRTUAL INPUT --
+local function pressKey(keyCode)
+    VirtualInputManager:SendKeyEvent(true, keyCode, false, nil)
+end
+
+local function releaseKey(keyCode)
+    VirtualInputManager:SendKeyEvent(false, keyCode, false, nil)
+end
+
+-- HELPER FUNCTION TO CLICK MOUSE LEFT BUTTON (Tap) --
+local mouseDown = false
+local function mousePress()
+    if not mouseDown then
+        mouseDown = true
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, nil, 0)
+    end
+end
+
+local function mouseRelease()
+    if mouseDown then
+        mouseDown = false
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, nil, 0)
+    end
+end
+
+-- MAIN LOOP --
 RunService.Heartbeat:Connect(function()
     for key, state in pairs(keyStates) do
         if state.toggle then
-            if state.hold then
-                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode[key], false, nil)
+            if key == "Tap" then
+                -- Tap = คลิกเมาส์ซ้ายโจมตี (M1)
+                if state.hold then
+                    -- กดค้าง
+                    mousePress()
+                else
+                    -- กดแค่ครั้งเดียวแล้วปล่อย
+                    mousePress()
+                    task.wait(0.05)
+                    mouseRelease()
+                end
             else
-                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode[key], false, nil)
-                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode[key], false, nil)
+                -- กดปุ่มคีย์บอร์ดอื่น ๆ
+                local keyCode = Enum.KeyCode[key]
+                if state.hold then
+                    pressKey(keyCode)
+                else
+                    pressKey(keyCode)
+                    task.wait(0.05)
+                    releaseKey(keyCode)
+                end
+            end
+        else
+            -- ถ้า toggle ปิด ต้องปล่อยปุ่มค้างไว้
+            if state.hold then
+                if key == "Tap" then
+                    mouseRelease()
+                else
+                    releaseKey(Enum.KeyCode[key])
+                end
+                state.hold = false -- รีเซ็ตสถานะ hold
             end
         end
     end
 end)
 
-print("✅ Chinatip Hub V1 updated with Auto Skill Key feature.")
+print("✅ Chinatip Hub V1 updated with improved Auto Skill Key & Tap system.")
