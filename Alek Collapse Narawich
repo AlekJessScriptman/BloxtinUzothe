@@ -1,207 +1,111 @@
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local UserInputService = game:GetService("UserInputService")
 
--- === ฟังก์ชันดึงผลไม้จาก workspace === --
-local function GetAvailableFruits()
-    local fruits = {}
-    local knownFruits = {
-        Dragon=true, Kitsune=true, Yeti=true, Leopard=true,
-        Gas=true, Dough=true, ["T-rex"]=true, Buddha=true,
-        Portal=true, Gravity=true
-    }
-    for _, obj in pairs(workspace:GetChildren()) do
-        if obj:IsA("Tool") and knownFruits[obj.Name] then
-            table.insert(fruits, obj.Name)
-        end
-    end
-    return fruits
+-- เพิ่มใน STATES
+local keyStates = {
+    Z = {toggle = false, hold = false},
+    X = {toggle = false, hold = false},
+    C = {toggle = false, hold = false},
+    V = {toggle = false, hold = false},
+    F = {toggle = false, hold = false},
+    E = {toggle = false, hold = false}, -- เพิ่ม E
+    Tap = {toggle = false, hold = false} -- Tap means M1 click
+}
+
+-- เพิ่มตัวแปรจับเวลาเฉพาะ E
+local holdStartTimes = {
+    X = nil,
+    C = nil,
+    E = nil -- สำหรับ E
+}
+
+-- เพิ่มตัวแปรเก็บสถานะว่ากด E ไปหรือยัง
+local lastEPressTime = 0
+
+-- UI --
+createLabel("💰 Chinatip's Auto Press Script")
+for _, key in ipairs({"Z", "X", "C", "V", "F", "E", "Tap"}) do  -- เพิ่ม E ในนี้
+    createToggleButton("Auto Press " .. key, function(on)
+        keyStates[key].toggle = on
+    end)
+    createToggleButton("Hold Key " .. key, function(on)
+        keyStates[key].hold = on
+    end)
 end
 
--- === ฟังก์ชัน Summon ผลไม้ === --
-local function SummonFruit(fruitName)
-    for _, obj in pairs(workspace:GetChildren()) do
-        if obj.Name == fruitName and obj:IsA("Tool") then
-            obj.Parent = LocalPlayer.Backpack
-            warn("✅ เรียกผลไม้: " .. fruitName)
-            return true
-        end
-    end
-    warn("❌ ไม่พบผลไม้: " .. fruitName)
-    return false
-end
-
--- === ฟังก์ชันเปลี่ยนผลไม้ === --
-local function ChangeFruit(newFruitName)
-    local backpack = LocalPlayer.Backpack
-    local character = LocalPlayer.Character
-
-    for _, item in pairs(backpack:GetChildren()) do
-        if item:IsA("Tool") and item.Name ~= newFruitName then
-            item:Destroy()
-        end
-    end
-    if character then
-        for _, item in pairs(character:GetChildren()) do
-            if item:IsA("Tool") and item.Name ~= newFruitName then
-                item:Destroy()
+-- MAIN LOOP --
+RunService.Heartbeat:Connect(function()
+    local currentTime = tick()
+    for key, state in pairs(keyStates) do
+        if state.toggle then
+            if key == "Tap" then
+                if state.hold then
+                    mousePress()
+                else
+                    mousePress()
+                    task.wait(0.05)
+                    mouseRelease()
+                end
+            else
+                local keyCode = Enum.KeyCode[key]
+                if key == "E" then
+                    -- สำหรับ E: ถ้ายังไม่ได้กดใน 5 วินาที กดให้
+                    if not holdStartTimes.E then
+                        holdStartTimes.E = currentTime
+                        pressKey(keyCode)
+                        lastEPressTime = currentTime
+                    else
+                        if currentTime - lastEPressTime > 5 then
+                            pressKey(keyCode)
+                            lastEPressTime = currentTime
+                        end
+                    end
+                    -- หาก Hold กดค้าง (ก็ปล่อยหลัง 5 วิ)
+                    if state.hold then
+                        if currentTime - holdStartTimes.E > MAX_HOLD_TIME then
+                            releaseKey(keyCode)
+                            state.hold = false
+                            state.toggle = false
+                            holdStartTimes.E = nil
+                        else
+                            pressKey(keyCode)
+                        end
+                    else
+                        holdStartTimes.E = nil
+                    end
+                else
+                    if state.hold then
+                        if (key == "X" or key == "C") then
+                            if not holdStartTimes[key] then
+                                holdStartTimes[key] = currentTime
+                                pressKey(keyCode)
+                            elseif currentTime - holdStartTimes[key] > MAX_HOLD_TIME then
+                                releaseKey(keyCode)
+                                state.hold = false
+                                state.toggle = false
+                                holdStartTimes[key] = nil
+                            else
+                                pressKey(keyCode)
+                            end
+                        else
+                            pressKey(keyCode)
+                        end
+                    else
+                        holdStartTimes[key] = nil
+                        pressKey(keyCode)
+                        task.wait(0.05)
+                        releaseKey(keyCode)
+                    end
+                end
+            end
+        else
+            if state.hold then
+                if key == "Tap" then
+                    mouseRelease()
+                else
+                    releaseKey(Enum.KeyCode[key])
+                end
+                state.hold = false
+                holdStartTimes[key] = nil
             end
         end
     end
-
-    return SummonFruit(newFruitName)
-end
-
--- === GUI สร้าง === --
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ผลไม้แฟลัท"
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 320, 0, 400)
-MainFrame.Position = UDim2.new(0.5, -160, 0.5, -200)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = ScreenGui
-MainFrame.Active = true
-MainFrame.Draggable = true
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-Title.BorderSizePixel = 0
-Title.Text = "เรียก/เปลี่ยนผลไม้ (Jes Phalat)"
-Title.TextColor3 = Color3.new(1,1,1)
-Title.TextScaled = true
-Title.Font = Enum.Font.GothamBold
-Title.Parent = MainFrame
-
--- ปุ่มปิด
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 40, 0, 40)
-CloseBtn.Position = UDim2.new(1, -40, 0, 0)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
-CloseBtn.Text = "X"
-CloseBtn.TextColor3 = Color3.new(1,1,1)
-CloseBtn.TextScaled = true
-CloseBtn.Parent = MainFrame
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui.Enabled = false
 end)
-
--- ปุ่มเปิด/ปิดใหม่ (GUI Toggle)
-local ToggleBtn = Instance.new("TextButton")
-ToggleBtn.Size = UDim2.new(0, 100, 0, 30)
-ToggleBtn.Position = UDim2.new(0, 10, 1, -35)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-ToggleBtn.TextColor3 = Color3.new(1,1,1)
-ToggleBtn.Text = "ซ่อนเมนู"
-ToggleBtn.Parent = MainFrame
-ToggleBtn.MouseButton1Click:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
-end)
-
--- Dropdown ผลไม้
-local DropdownFrame = Instance.new("Frame")
-DropdownFrame.Size = UDim2.new(1, -20, 0, 30)
-DropdownFrame.Position = UDim2.new(0, 10, 0, 50)
-DropdownFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-DropdownFrame.Parent = MainFrame
-
-local SelectedFruit = Instance.new("TextLabel")
-SelectedFruit.Size = UDim2.new(1, -35, 1, 0)
-SelectedFruit.Position = UDim2.new(0, 0, 0, 0)
-SelectedFruit.BackgroundTransparency = 1
-SelectedFruit.TextColor3 = Color3.new(1,1,1)
-SelectedFruit.Text = "เลือกผลไม้"
-SelectedFruit.TextXAlignment = Enum.TextXAlignment.Left
-SelectedFruit.TextScaled = true
-SelectedFruit.Parent = DropdownFrame
-
-local DropdownButton = Instance.new("TextButton")
-DropdownButton.Size = UDim2.new(0, 35, 1, 0)
-DropdownButton.Position = UDim2.new(1, -35, 0, 0)
-DropdownButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-DropdownButton.Text = "▼"
-DropdownButton.TextColor3 = Color3.new(1,1,1)
-DropdownButton.TextScaled = true
-DropdownButton.Parent = DropdownFrame
-
-local DropdownList = Instance.new("Frame")
-DropdownList.Size = UDim2.new(1, 0, 0, 150)
-DropdownList.Position = UDim2.new(0, 0, 1, 0)
-DropdownList.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-DropdownList.Visible = false
-DropdownList.Parent = DropdownFrame
-
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Parent = DropdownList
-
--- ฟังก์ชันเติม dropdown
-local function PopulateDropdown()
-    for _, child in ipairs(DropdownList:GetChildren()) do
-        if child:IsA("TextButton") then
-            child:Destroy()
-        end
-    end
-    local fruits = GetAvailableFruits()
-    for _, fruit in pairs(fruits) do
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, 0, 0, 30)
-        btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        btn.TextColor3 = Color3.new(1,1,1)
-        btn.Text = fruit
-        btn.TextScaled = true
-        btn.Parent = DropdownList
-
-        btn.MouseButton1Click:Connect(function()
-            SelectedFruit.Text = fruit
-            DropdownList.Visible = false
-        end)
-    end
-end
-
-DropdownButton.MouseButton1Click:Connect(function()
-    DropdownList.Visible = not DropdownList.Visible
-    if DropdownList.Visible then
-        PopulateDropdown()
-    end
-end)
-
--- ปุ่ม Summon
-local SummonBtn = Instance.new("TextButton")
-SummonBtn.Size = UDim2.new(1, -20, 0, 40)
-SummonBtn.Position = UDim2.new(0, 10, 0, 220)
-SummonBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-SummonBtn.TextColor3 = Color3.new(1,1,1)
-SummonBtn.Text = "เรียกผลไม้ (Summon)"
-SummonBtn.TextScaled = true
-SummonBtn.Parent = MainFrame
-
-SummonBtn.MouseButton1Click:Connect(function()
-    if SelectedFruit.Text ~= "เลือกผลไม้" then
-        SummonFruit(SelectedFruit.Text)
-    end
-end)
-
--- ปุ่ม Change
-local ChangeBtn = Instance.new("TextButton")
-ChangeBtn.Size = UDim2.new(1, -20, 0, 40)
-ChangeBtn.Position = UDim2.new(0, 10, 0, 270)
-ChangeBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-ChangeBtn.TextColor3 = Color3.new(1,1,1)
-ChangeBtn.Text = "เปลี่ยนผลไม้ (Change)"
-ChangeBtn.TextScaled = true
-ChangeBtn.Parent = MainFrame
-
-ChangeBtn.MouseButton1Click:Connect(function()
-    if SelectedFruit.Text ~= "เลือกผลไม้" then
-        ChangeFruit(SelectedFruit.Text)
-    end
-end)
-
--- เรียก dropdown เมื่อเริ่ม
-task.delay(1, PopulateDropdown)
