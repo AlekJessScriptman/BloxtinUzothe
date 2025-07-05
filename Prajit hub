@@ -1,0 +1,75 @@
+-- Mobile Speed Hack GUI for Roblox
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+
+-- Function to get Humanoid
+local function getHumanoid()
+	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	return char:WaitForChild("Humanoid")
+end
+
+-- GUI Setup
+local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "MobileSpeedGUI"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 160, 0, 120)
+frame.Position = UDim2.new(1, -180, 1, -160)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+
+local toggleBtn = Instance.new("TextButton", frame)
+toggleBtn.Size = UDim2.new(1, -10, 0, 40)
+toggleBtn.Position = UDim2.new(0, 5, 0, 5)
+toggleBtn.Text = "Speed: OFF"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleBtn.Font = Enum.Font.Gotham
+toggleBtn.TextSize = 14
+
+local speedBox = Instance.new("TextBox", frame)
+speedBox.Size = UDim2.new(1, -10, 0, 30)
+speedBox.Position = UDim2.new(0, 5, 0, 50)
+speedBox.PlaceholderText = "Speed (Default: 100)"
+speedBox.Text = "100"
+speedBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+speedBox.TextColor3 = Color3.new(1, 1, 1)
+speedBox.Font = Enum.Font.Gotham
+speedBox.TextSize = 14
+speedBox.ClearTextOnFocus = false
+
+-- State
+local speedOn = false
+local defaultSpeed = 16
+
+-- Toggle Function
+toggleBtn.MouseButton1Click:Connect(function()
+	local hum = getHumanoid()
+	local inputSpeed = tonumber(speedBox.Text) or 100
+
+	speedOn = not speedOn
+	if speedOn then
+		hum.WalkSpeed = inputSpeed
+		toggleBtn.Text = "Speed: ON"
+	else
+		hum.WalkSpeed = defaultSpeed
+		toggleBtn.Text = "Speed: OFF"
+	end
+end)
+
+-- Auto-reset speed if respawned
+LocalPlayer.CharacterAdded:Connect(function(char)
+	local hum = char:WaitForChild("Humanoid")
+	if speedOn then
+		task.wait(1)
+		hum.WalkSpeed = tonumber(speedBox.Text) or 100
+	end
+end)
+
+StarterGui:SetCore("SendNotification", {
+	Title = "Speed Hack Ready!",
+	Text = "กด Speed: ON/OFF ด้านล่างจอ",
+	Duration = 4
+})
