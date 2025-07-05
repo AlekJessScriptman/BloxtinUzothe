@@ -1,4 +1,4 @@
--- Jes Phalat Hub (PvP + Utility Script for Blox Fruits with Damage, Kick & Kill Aura)
+-- Jes Phalat Hub (PvP + Utility Script for Blox Fruits with Damage, Kick, Kill Aura, Scroll, and Dragon Support)
 
 -- SERVICES --
 local Players = game:GetService("Players")
@@ -8,20 +8,24 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 
--- UI SETUP --
-local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+-- GUI SETUP --
+local gui = Instance.new("ScreenGui")
 gui.Name = "JesPhalatHub"
 gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-local toggleBtn = Instance.new("TextButton", gui)
+local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 120, 0, 30)
 toggleBtn.Position = UDim2.new(0, 20, 0.05, 0)
 toggleBtn.Text = "Hide Menu"
 toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 toggleBtn.TextColor3 = Color3.new(1, 1, 1)
 toggleBtn.Font = Enum.Font.Gotham
+toggleBtn.Parent = gui
 
-local scrollFrame = Instance.new("ScrollingFrame", gui)
+local scrollFrame = Instance.new("ScrollingFrame")
 scrollFrame.Size = UDim2.new(0, 350, 0, 550)
 scrollFrame.Position = UDim2.new(0, 20, 0.2, 0)
 scrollFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
@@ -32,14 +36,17 @@ scrollFrame.ScrollBarThickness = 6
 scrollFrame.ClipsDescendants = true
 scrollFrame.Active = true
 scrollFrame.Visible = true
+scrollFrame.Parent = gui
 
-local container = Instance.new("Frame", scrollFrame)
+local container = Instance.new("Frame")
 container.Size = UDim2.new(1, 0, 0, 3000)
 container.BackgroundTransparency = 1
+container.Parent = scrollFrame
 
-local layout = Instance.new("UIListLayout", container)
+local layout = Instance.new("UIListLayout")
 layout.Padding = UDim.new(0, 6)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = container
 
 toggleBtn.MouseButton1Click:Connect(function()
     scrollFrame.Visible = not scrollFrame.Visible
@@ -48,17 +55,18 @@ end)
 
 -- UI UTILS --
 local function createLabel(text)
-    local lbl = Instance.new("TextLabel", container)
+    local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, -20, 0, 26)
     lbl.Text = text
     lbl.Font = Enum.Font.GothamBold
     lbl.TextSize = 16
     lbl.TextColor3 = Color3.new(1, 1, 1)
     lbl.BackgroundTransparency = 1
+    lbl.Parent = container
 end
 
 local function createTextBox(placeholder)
-    local box = Instance.new("TextBox", container)
+    local box = Instance.new("TextBox")
     box.Size = UDim2.new(1, -20, 0, 28)
     box.PlaceholderText = placeholder
     box.Font = Enum.Font.Gotham
@@ -66,12 +74,13 @@ local function createTextBox(placeholder)
     box.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     box.TextColor3 = Color3.new(1, 1, 1)
     box.ClearTextOnFocus = false
+    box.Parent = container
     return box
 end
 
 local function createToggleButton(text, callback)
     local toggled = false
-    local btn = Instance.new("TextButton", container)
+    local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -20, 0, 32)
     btn.Text = "[OFF] " .. text
     btn.Font = Enum.Font.Gotham
@@ -83,6 +92,7 @@ local function createToggleButton(text, callback)
         btn.Text = (toggled and "[ON] " or "[OFF] ") .. text
         pcall(callback, toggled)
     end)
+    btn.Parent = container
     return btn
 end
 
@@ -137,5 +147,14 @@ RunService.Heartbeat:Connect(function()
 
     if states.kickPlayer and playerBox.Text ~= "" then
         local target = Players:FindFirstChild(playerBox.Text)
-        if target then
-            target
+        if target and target.Character then
+            target:Kick("Jes Phalat Admin Kick")
+            states.kickPlayer = false
+        end
+    end
+end)
+
+print("✅ Jes Phalat Hub loaded successfully with Damage Boost, Kill Aura, Kick Player, Dragon & Scroll GUI support.")
+
+
+✅ สคริปต์ Jes Phalat Hub พร้อมฟีเจอร์:
