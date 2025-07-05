@@ -1,0 +1,210 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+
+-- ฟังก์ชันดึงผลไม้จาก workspace เหมือนที่คุยกัน
+local function GetAvailableFruits()
+    local fruits = {}
+    local knownFruits = {
+        Dragon=true, Kitsune=true, Yeti=true, Leopard=true,
+        Gas=true, Dough=true, ["T-rex"]=true, Buddha=true,
+        Portal=true, Gravity=true
+    }
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj:IsA("Tool") and knownFruits[obj.Name] then
+            table.insert(fruits, obj.Name)
+        end
+    end
+    return fruits
+end
+
+-- GUI Create --
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FruitSummonGui"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 300, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+MainFrame.Active = true
+MainFrame.Draggable = true -- ให้ลากได้ง่าย
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Title.BorderSizePixel = 0
+Title.Text = "Fruit Summon & Changer"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.TextScaled = true
+Title.Parent = MainFrame
+
+-- Close Button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 40, 0, 40)
+CloseBtn.Position = UDim2.new(1, -40, 0, 0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.new(1,1,1)
+CloseBtn.TextScaled = true
+CloseBtn.Parent = MainFrame
+
+-- Toggle Button (เปิด-ปิด GUI)
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(0, 120, 0, 30)
+ToggleBtn.Position = UDim2.new(0, 10, 1, -40)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToggleBtn.TextColor3 = Color3.new(1,1,1)
+ToggleBtn.Text = "Hide Menu"
+ToggleBtn.Parent = MainFrame
+
+-- Fruit Dropdown (Simple)
+local DropdownFrame = Instance.new("Frame")
+DropdownFrame.Size = UDim2.new(1, -20, 0, 30)
+DropdownFrame.Position = UDim2.new(0, 10, 0, 60)
+DropdownFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+DropdownFrame.Parent = MainFrame
+
+local SelectedFruit = Instance.new("TextLabel")
+SelectedFruit.Size = UDim2.new(1, -30, 1, 0)
+SelectedFruit.Position = UDim2.new(0, 0, 0, 0)
+SelectedFruit.BackgroundTransparency = 1
+SelectedFruit.TextColor3 = Color3.new(1,1,1)
+SelectedFruit.Text = "Select Fruit"
+SelectedFruit.TextXAlignment = Enum.TextXAlignment.Left
+SelectedFruit.TextScaled = true
+SelectedFruit.Parent = DropdownFrame
+
+local DropdownButton = Instance.new("TextButton")
+DropdownButton.Size = UDim2.new(0, 30, 1, 0)
+DropdownButton.Position = UDim2.new(1, -30, 0, 0)
+DropdownButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+DropdownButton.Text = "v"
+DropdownButton.TextColor3 = Color3.new(1,1,1)
+DropdownButton.TextScaled = true
+DropdownButton.Parent = DropdownFrame
+
+local DropdownList = Instance.new("Frame")
+DropdownList.Size = UDim2.new(1, 0, 0, 150)
+DropdownList.Position = UDim2.new(0, 0, 1, 0)
+DropdownList.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+DropdownList.Visible = false
+DropdownList.Parent = DropdownFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = DropdownList
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- ฟังก์ชันสร้างปุ่มใน DropdownList
+local function PopulateDropdown()
+    DropdownList:ClearAllChildren()
+    UIListLayout.Parent = DropdownList -- ต้องใส่กลับเพราะ ClearAllChildren ลบหมด
+    local fruits = GetAvailableFruits()
+    for _, fruitName in ipairs(fruits) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, 0, 0, 30)
+        btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.Text = fruitName
+        btn.TextScaled = true
+        btn.Parent = DropdownList
+
+        btn.MouseButton1Click:Connect(function()
+            SelectedFruit.Text = fruitName
+            DropdownList.Visible = false
+        end)
+    end
+end
+
+-- Toggle DropdownList
+DropdownButton.MouseButton1Click:Connect(function()
+    DropdownList.Visible = not DropdownList.Visible
+end)
+
+-- Close Button คลิกปิด GUI
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui.Enabled = false
+end)
+
+-- ToggleBtn ปิด-เปิด GUI
+ToggleBtn.MouseButton1Click:Connect(function()
+    ScreenGui.Enabled = not ScreenGui.Enabled
+    ToggleBtn.Text = ScreenGui.Enabled and "Hide Menu" or "Show Menu"
+end)
+
+-- สร้างปุ่ม Summon และ Change Fruit
+local SummonBtn = Instance.new("TextButton")
+SummonBtn.Size = UDim2.new(1, -20, 0, 40)
+SummonBtn.Position = UDim2.new(0, 10, 0, 220)
+SummonBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+SummonBtn.TextColor3 = Color3.new(1,1,1)
+SummonBtn.Text = "Summon Fruit"
+SummonBtn.TextScaled = true
+SummonBtn.Parent = MainFrame
+
+local ChangeBtn = Instance.new("TextButton")
+ChangeBtn.Size = UDim2.new(1, -20, 0, 40)
+ChangeBtn.Position = UDim2.new(0, 10, 0, 270)
+ChangeBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+ChangeBtn.TextColor3 = Color3.new(1,1,1)
+ChangeBtn.Text = "Change Fruit"
+ChangeBtn.TextScaled = true
+ChangeBtn.Parent = MainFrame
+
+-- ใช้ฟังก์ชัน SummonFruit, ChangeFruit ที่คุณมีแล้ว
+local function SummonFruit(fruitName)
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj.Name == fruitName and obj:IsA("Tool") then
+            obj.Parent = LocalPlayer.Backpack
+            print("Summoned fruit: " .. fruitName)
+            return true
+        end
+    end
+    warn("Fruit not found:", fruitName)
+    return false
+end
+
+local function ChangeFruit(newFruitName)
+    local backpack = LocalPlayer.Backpack
+    local character = LocalPlayer.Character
+
+    for _, item in pairs(backpack:GetChildren()) do
+        if item:IsA("Tool") and item.Name ~= newFruitName then
+            item:Destroy()
+        end
+    end
+    if character then
+        for _, item in pairs(character:GetChildren()) do
+            if item:IsA("Tool") and item.Name ~= newFruitName then
+                item:Destroy()
+            end
+        end
+    end
+
+    return SummonFruit(newFruitName)
+end
+
+-- กด Summon
+SummonBtn.MouseButton1Click:Connect(function()
+    if SelectedFruit.Text ~= "Select Fruit" then
+        SummonFruit(SelectedFruit.Text)
+    else
+        warn("Please select a fruit first!")
+    end
+end)
+
+-- กด Change
+ChangeBtn.MouseButton1Click:Connect(function()
+    if SelectedFruit.Text ~= "Select Fruit" then
+        ChangeFruit(SelectedFruit.Text)
+    else
+        warn("Please select a fruit first!")
+    end
+end)
+
+-- เรียก populate dropdown เมื่อเริ่มต้น
+PopulateDropdown()
