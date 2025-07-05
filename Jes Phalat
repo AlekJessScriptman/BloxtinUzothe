@@ -1,0 +1,141 @@
+-- Jes Phalat Hub (PvP + Utility Script for Blox Fruits with Damage, Kick & Kill Aura)
+
+-- SERVICES --
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+
+-- UI SETUP --
+local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "JesPhalatHub"
+gui.ResetOnSpawn = false
+
+local toggleBtn = Instance.new("TextButton", gui)
+toggleBtn.Size = UDim2.new(0, 120, 0, 30)
+toggleBtn.Position = UDim2.new(0, 20, 0.05, 0)
+toggleBtn.Text = "Hide Menu"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleBtn.Font = Enum.Font.Gotham
+
+local scrollFrame = Instance.new("ScrollingFrame", gui)
+scrollFrame.Size = UDim2.new(0, 350, 0, 550)
+scrollFrame.Position = UDim2.new(0, 20, 0.2, 0)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+scrollFrame.BorderSizePixel = 0
+scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scrollFrame.CanvasSize = UDim2.new(0, 0, 5, 0)
+scrollFrame.ScrollBarThickness = 6
+scrollFrame.ClipsDescendants = true
+scrollFrame.Active = true
+scrollFrame.Visible = true
+
+local container = Instance.new("Frame", scrollFrame)
+container.Size = UDim2.new(1, 0, 0, 3000)
+container.BackgroundTransparency = 1
+
+local layout = Instance.new("UIListLayout", container)
+layout.Padding = UDim.new(0, 6)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+toggleBtn.MouseButton1Click:Connect(function()
+    scrollFrame.Visible = not scrollFrame.Visible
+    toggleBtn.Text = scrollFrame.Visible and "Hide Menu" or "Show Menu"
+end)
+
+-- UI UTILS --
+local function createLabel(text)
+    local lbl = Instance.new("TextLabel", container)
+    lbl.Size = UDim2.new(1, -20, 0, 26)
+    lbl.Text = text
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 16
+    lbl.TextColor3 = Color3.new(1, 1, 1)
+    lbl.BackgroundTransparency = 1
+end
+
+local function createTextBox(placeholder)
+    local box = Instance.new("TextBox", container)
+    box.Size = UDim2.new(1, -20, 0, 28)
+    box.PlaceholderText = placeholder
+    box.Font = Enum.Font.Gotham
+    box.TextSize = 14
+    box.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    box.TextColor3 = Color3.new(1, 1, 1)
+    box.ClearTextOnFocus = false
+    return box
+end
+
+local function createToggleButton(text, callback)
+    local toggled = false
+    local btn = Instance.new("TextButton", container)
+    btn.Size = UDim2.new(1, -20, 0, 32)
+    btn.Text = "[OFF] " .. text
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        btn.Text = (toggled and "[ON] " or "[OFF] ") .. text
+        pcall(callback, toggled)
+    end)
+    return btn
+end
+
+-- STATES --
+local states = {
+    damageBoost = false,
+    killAura = false,
+    kickPlayer = false
+}
+
+-- UI SECTIONS --
+createLabel("🔥 Damage Boost")
+createToggleButton("Enable Damage Boost", function(on)
+    states.damageBoost = on
+end)
+
+createLabel("💀 Kill Aura")
+createToggleButton("Enable Kill Aura", function(on)
+    states.killAura = on
+end)
+
+createLabel("👞 Kick Player by Name")
+local playerBox = createTextBox("Enter player name to kick")
+createToggleButton("Kick Player", function(on)
+    states.kickPlayer = on
+end)
+
+-- MAIN LOOP --
+RunService.Heartbeat:Connect(function()
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
+    if states.killAura and hrp then
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local dist = (plr.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                if dist < 25 then
+                    local tool = char:FindFirstChildOfClass("Tool")
+                    if tool then tool:Activate() end
+                end
+            end
+        end
+    end
+
+    if states.damageBoost and char then
+        for _, v in pairs(char:GetDescendants()) do
+            if v:IsA("NumberValue") and v.Name:lower():find("damage") then
+                v.Value = 9999
+            end
+        end
+    end
+
+    if states.kickPlayer and playerBox.Text ~= "" then
+        local target = Players:FindFirstChild(playerBox.Text)
+        if target then
+            target
