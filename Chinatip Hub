@@ -126,11 +126,11 @@ local function releaseKey(keyCode)
 end
 
 local function mousePress()
-    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, nil, 0)
+    VirtualInputManager:SendMouseButtonEvent(500, 500, 0, true, game, 0)
 end
 
 local function mouseRelease()
-    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, nil, 0)
+    VirtualInputManager:SendMouseButtonEvent(500, 500, 0, false, game, 0)
 end
 
 -- STATES --
@@ -151,8 +151,7 @@ local holdStartTimes = {
 }
 
 -- UI --
-createLabel("🔘 Auto Skill Keys")
-
+createLabel("🔘 Chinatip's Auto Press Script")
 for _, key in ipairs({"Z", "X", "C", "V", "F", "Tap"}) do
     createToggleButton("Auto Press " .. key, function(on)
         keyStates[key].toggle = on
