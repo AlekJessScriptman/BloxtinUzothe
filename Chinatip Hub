@@ -1,55 +1,29 @@
--- Chinatip Hub V1 (with Auto Skill Key, Tap, Smart E, Gradient GUI)
+-- Chinatip Hub V1 (with Auto Skill Key, Tap, and Hold E Fix + Background Hide)
 
 -- SERVICES --
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
--- GUI SETUP --
+-- UI SETUP --
 local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-gui.Name = "ChinatipHubV1"
+gui.Name = "ChinatipHubV1💰"
 gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-gui.Parent = game.CoreGui
 
--- Toggle Button
 local toggleBtn = Instance.new("TextButton", gui)
 toggleBtn.Size = UDim2.new(0, 120, 0, 30)
 toggleBtn.Position = UDim2.new(0, 20, 0.05, 0)
 toggleBtn.Text = "Hide Menu"
-toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 60, 100)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 toggleBtn.TextColor3 = Color3.new(1, 1, 1)
 toggleBtn.Font = Enum.Font.Gotham
 
-local toggleGradient = Instance.new("UIGradient", toggleBtn)
-toggleGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 180, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 90, 200))
-}
-
--- Gradient Outer Frame
-local outerFrame = Instance.new("Frame", gui)
-outerFrame.Size = UDim2.new(0, 356, 0, 556)
-outerFrame.Position = UDim2.new(0, 17, 0.2, 0)
-outerFrame.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-outerFrame.BorderSizePixel = 0
-
-local outerGradient = Instance.new("UIGradient", outerFrame)
-outerGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 200, 255)),
-    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 0, 255)),
-    ColorSequenceKeypoint.new(0.66, Color3.fromRGB(255, 255, 0)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 255, 150))
-}
-outerGradient.Rotation = 45
-
--- ScrollFrame Inner
-local scrollFrame = Instance.new("ScrollingFrame", outerFrame)
-scrollFrame.Size = UDim2.new(1, -6, 1, -6)
-scrollFrame.Position = UDim2.new(0, 3, 0, 3)
+local scrollFrame = Instance.new("ScrollingFrame", gui)
+scrollFrame.Size = UDim2.new(0, 350, 0, 550)
+scrollFrame.Position = UDim2.new(0, 20, 0.2, 0)
 scrollFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 scrollFrame.BorderSizePixel = 0
 scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -59,31 +33,7 @@ scrollFrame.ClipsDescendants = true
 scrollFrame.Active = true
 scrollFrame.Visible = true
 
-toggleBtn.MouseButton1Click:Connect(function()
-	scrollFrame.Visible = not scrollFrame.Visible
-	toggleBtn.Text = scrollFrame.Visible and "Hide Menu" or "Show Menu"
-end)
-
--- Drag GUI
-local dragging, dragStart, startPos
-outerFrame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
-		dragStart = input.Position
-		startPos = outerFrame.Position
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then dragging = false end
-		end)
-	end
-end)
-UserInputService.InputChanged:Connect(function(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local delta = input.Position - dragStart
-		outerFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-	end
-end)
-
--- CONTAINER
+-- Container Frame inside scrollFrame (background + content)
 local container = Instance.new("Frame", scrollFrame)
 container.Size = UDim2.new(1, 0, 0, 3000)
 container.BackgroundTransparency = 1
@@ -92,147 +42,157 @@ local layout = Instance.new("UIListLayout", container)
 layout.Padding = UDim.new(0, 6)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 
--- FUNCTIONS
+-- Toggle menu visibility + hide container together to fix background leftover
+toggleBtn.MouseButton1Click:Connect(function()
+    scrollFrame.Visible = not scrollFrame.Visible
+    container.Visible = scrollFrame.Visible
+    toggleBtn.Text = scrollFrame.Visible and "Hide Menu" or "Show Menu"
+end)
+
+-- DRAG SUPPORT --
+local dragging, dragStart, startPos
+scrollFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = scrollFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        scrollFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- UI FUNCTIONS --
 local function createLabel(text)
-	local lbl = Instance.new("TextLabel", container)
-	lbl.Size = UDim2.new(1, -20, 0, 26)
-	lbl.Text = text
-	lbl.Font = Enum.Font.GothamBold
-	lbl.TextSize = 16
-	lbl.TextColor3 = Color3.new(1, 1, 1)
-	lbl.BackgroundTransparency = 1
+    local lbl = Instance.new("TextLabel", container)
+    lbl.Size = UDim2.new(1, -20, 0, 26)
+    lbl.Text = text
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 16
+    lbl.TextColor3 = Color3.new(1, 1, 1)
+    lbl.BackgroundTransparency = 1
 end
 
 local function createToggleButton(text, callback)
-	local toggled = false
-	local btn = Instance.new("TextButton", container)
-	btn.Size = UDim2.new(1, -20, 0, 32)
-	btn.Text = "[OFF] " .. text
-	btn.Font = Enum.Font.Gotham
-	btn.TextSize = 14
-	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.MouseButton1Click:Connect(function()
-		toggled = not toggled
-		btn.Text = (toggled and "[ON] " or "[OFF] ") .. text
-		pcall(callback, toggled)
-	end)
-	return btn
+    local toggled = false
+    local btn = Instance.new("TextButton", container)
+    btn.Size = UDim2.new(1, -20, 0, 32)
+    btn.Text = "[OFF] " .. text
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        btn.Text = (toggled and "[ON] " or "[OFF] ") .. text
+        pcall(callback, toggled)
+    end)
+    return btn
 end
 
+-- KEY UTILITIES --
 local function pressKey(keyCode)
-	VirtualInputManager:SendKeyEvent(true, keyCode, false, nil)
+    VirtualInputManager:SendKeyEvent(true, keyCode, false, nil)
 end
+
 local function releaseKey(keyCode)
-	VirtualInputManager:SendKeyEvent(false, keyCode, false, nil)
+    VirtualInputManager:SendKeyEvent(false, keyCode, false, nil)
 end
+
 local function mousePress()
-	VirtualInputManager:SendMouseButtonEvent(500, 500, 0, true, game, 0)
+    VirtualInputManager:SendMouseButtonEvent(500, 500, 0, true, game, 0)
 end
+
 local function mouseRelease()
-	VirtualInputManager:SendMouseButtonEvent(500, 500, 0, false, game, 0)
+    VirtualInputManager:SendMouseButtonEvent(500, 500, 0, false, game, 0)
 end
 
--- STATES
+-- STATES --
 local keyStates = {
-	Z = {toggle = false, hold = false},
-	X = {toggle = false, hold = false},
-	C = {toggle = false, hold = false},
-	V = {toggle = false, hold = false},
-	F = {toggle = false, hold = false},
-	Tap = {toggle = false, hold = false},
-	E = {toggle = false, lastUse = 0}
+    Z = {toggle = false, hold = false},
+    X = {toggle = false, hold = false},
+    C = {toggle = false, hold = false},
+    V = {toggle = false, hold = false},
+    F = {toggle = false, hold = false},
+    Tap = {toggle = false, hold = false},
+    E = {toggle = false, hold = false} -- E now supports hold
 }
-local MAX_HOLD_TIME = 5
-local holdStartTimes = { X = nil, C = nil }
 
--- UI
+local MAX_HOLD_TIME = 5
+local holdStartTimes = {
+    X = nil,
+    C = nil,
+    E = nil
+}
+
+-- UI --
 createLabel("🔘 Chinatip's Auto Press Script")
+
 for _, key in ipairs({"Z", "X", "C", "V", "F", "Tap", "E"}) do
-	if key ~= "E" then
-		createToggleButton("Auto Press " .. key, function(on)
-			keyStates[key].toggle = on
-		end)
-		createToggleButton("Hold Key " .. key, function(on)
-			keyStates[key].hold = on
-		end)
-	else
-		createToggleButton("Auto Press E", function(on)
-			keyStates.E.toggle = on
-		end)
-	end
+    createToggleButton("Auto Press " .. key, function(on)
+        keyStates[key].toggle = on
+    end)
+    createToggleButton("Hold Key " .. key, function(on)
+        keyStates[key].hold = on
+    end)
 end
 
--- LOOP
+-- MAIN LOOP --
 RunService.Heartbeat:Connect(function()
-	local now = tick()
-
-	for key, state in pairs(keyStates) do
-		if state.toggle then
-			if key == "Tap" then
-				if state.hold then
-					mousePress()
-				else
-					mousePress()
-					task.wait(0.05)
-					mouseRelease()
-				end
-			elseif key == "E" then
-				if now - (state.lastUse or 0) >= 5 then
-					local char = LocalPlayer.Character
-					local usingE = false
-					if char then
-						for _, v in pairs(char:GetDescendants()) do
-							if v:IsA("ParticleEmitter") and v.Enabled and v.Name:lower():find("e") then
-								usingE = true
-								break
-							end
-						end
-						if not usingE then
-							pressKey(Enum.KeyCode.E)
-							task.wait(0.05)
-							releaseKey(Enum.KeyCode.E)
-							state.lastUse = now
-						end
-					end
-				end
-			else
-				local keyCode = Enum.KeyCode[key]
-				if state.hold then
-					if key == "X" or key == "C" then
-						if not holdStartTimes[key] then
-							holdStartTimes[key] = now
-							pressKey(keyCode)
-						elseif now - holdStartTimes[key] > MAX_HOLD_TIME then
-							releaseKey(keyCode)
-							state.hold = false
-							state.toggle = false
-							holdStartTimes[key] = nil
-						else
-							pressKey(keyCode)
-						end
-					else
-						pressKey(keyCode)
-					end
-				else
-					holdStartTimes[key] = nil
-					pressKey(keyCode)
-					task.wait(0.05)
-					releaseKey(keyCode)
-				end
-			end
-		else
-			if state.hold then
-				if key == "Tap" then
-					mouseRelease()
-				else
-					releaseKey(Enum.KeyCode[key])
-				end
-				state.hold = false
-				holdStartTimes[key] = nil
-			end
-		end
-	end
+    local now = tick()
+    for key, state in pairs(keyStates) do
+        if state.toggle then
+            if key == "Tap" then
+                if state.hold then
+                    mousePress()
+                else
+                    mousePress()
+                    task.wait(0.05)
+                    mouseRelease()
+                end
+            else
+                local keyCode = Enum.KeyCode[key]
+                if state.hold then
+                    if (key == "X" or key == "C" or key == "E") then
+                        if not holdStartTimes[key] then
+                            holdStartTimes[key] = now
+                            pressKey(keyCode)
+                        elseif now - holdStartTimes[key] > MAX_HOLD_TIME then
+                            releaseKey(keyCode)
+                            state.hold = false
+                            state.toggle = false
+                            holdStartTimes[key] = nil
+                        else
+                            pressKey(keyCode)
+                        end
+                    else
+                        pressKey(keyCode)
+                    end
+                else
+                    holdStartTimes[key] = nil
+                    pressKey(keyCode)
+                    task.wait(0.05)
+                    releaseKey(keyCode)
+                end
+            end
+        else
+            if state.hold then
+                if key == "Tap" then
+                    mouseRelease()
+                else
+                    releaseKey(Enum.KeyCode[key])
+                end
+                state.hold = false
+                holdStartTimes[key] = nil
+            end
+        end
+    end
 end)
 
-print("✅ Chinatip Hub V1 with Gradient UI & Smart E is loaded.")
+print("✅ Chinatip Hub V1 loaded with Auto Skill Keys + Hold E support and fixed background hide.")
