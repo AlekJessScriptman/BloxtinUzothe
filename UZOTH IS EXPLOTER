@@ -1,0 +1,65 @@
+-- Services
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- RemoteEvents ที่ใช้ (คุณต้องสร้างใน ReplicatedStorage)
+local summonPetEvent = ReplicatedStorage:WaitForChild("SummonPetEvent", 5)
+local setEggRateEvent = ReplicatedStorage:WaitForChild("SetEggRateEvent", 5)
+
+-- ฐานข้อมูลสัตว์ที่อนุญาต
+local validPets = {"Dragonfly", "Bee", "Ladybug", "T-Rex", "Unicorn", "Spider", "CandyWorm"}
+
+-- GUI Setup เหมือนเดิม (ย่อไว้)
+-- ... [ย่อ GUI สร้าง toggle, drag, scroll, input, label, button] ...
+
+-- 🔹 SUMMONER FILE EXECUTION
+createLabel("📦 Summoner (Script Loader)")
+local summonerInput = createInput("Enter script name")
+createButton("Summon", function()
+	local name = summonerInput.Text
+	if name ~= "" then
+		local module = ReplicatedStorage:FindFirstChild(name)
+		if module and module:IsA("ModuleScript") then
+			print("[Summoner] Executing", name)
+			pcall(require, module)
+		else
+			warn("❌ Script '"..name.."' not found in ReplicatedStorage")
+		end
+	end
+end)
+
+-- 🔹 PET SUMMONER
+createLabel("🐞 Summoner Pet")
+local petInput = createInput("Enter pet name to summon")
+createButton("Summon Pet", function()
+	local pet = petInput.Text
+	if table.find(validPets, pet) then
+		if summonPetEvent then
+			print("[Pet] Summoning:", pet)
+			summonPetEvent:FireServer(pet)
+		else
+			warn("❌ summonPetEvent not found!")
+		end
+	else
+		warn("❌ Invalid pet:", pet)
+	end
+end)
+
+-- 🔹 RATE CHANGER
+createLabel("🥚 Rate Changer")
+local eggTypeInput = createInput("Enter Egg Type (Bug, Mythical, Dinosaur)")
+local ratePetInput = createInput("Pet Name")
+local rateInput = createInput("Rate (e.g. 25%)")
+
+createButton("Apply Rate", function()
+	local egg = eggTypeInput.Text
+	local pet = ratePetInput.Text
+	local rate = rateInput.Text
+	if setEggRateEvent then
+		print("[Rate] Setting:", egg, pet, rate)
+		setEggRateEvent:FireServer(egg, pet, rate)
+	else
+		warn("❌ setEggRateEvent not found!")
+	end
+end)
