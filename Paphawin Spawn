@@ -1,0 +1,141 @@
+-- AlekGremul GUI for Grow a Garden
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Fake pet database for reference
+local validPets = {"Dragonfly", "Bee", "Disco Bee", "T-Rex", "Queen Bee", "Raccoon", "Butterfly"} -- Add real game pets here
+
+-- GUI Setup
+local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "AlekSpawner"
+gui.ResetOnSpawn = false
+
+local toggleBtn = Instance.new("TextButton", gui)
+toggleBtn.Size = UDim2.new(0, 120, 0, 30)
+toggleBtn.Position = UDim2.new(0, 20, 0.05, 0)
+toggleBtn.Text = "Hide Menu"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleBtn.Font = Enum.Font.Gotham
+
+local scrollFrame = Instance.new("ScrollingFrame", gui)
+scrollFrame.Size = UDim2.new(0, 400, 0, 500)
+scrollFrame.Position = UDim2.new(0, 20, 0.15, 0)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+scrollFrame.ScrollBarThickness = 6
+scrollFrame.CanvasSize = UDim2.new(0, 0, 5, 0)
+scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scrollFrame.ClipsDescendants = true
+scrollFrame.Active = true
+scrollFrame.Visible = true
+
+toggleBtn.MouseButton1Click:Connect(function()
+	scrollFrame.Visible = not scrollFrame.Visible
+	toggleBtn.Text = scrollFrame.Visible and "Hide Menu" or "Show Menu"
+end)
+
+-- Drag support
+local dragging, dragStart, startPos
+scrollFrame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = scrollFrame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		local delta = input.Position - dragStart
+		scrollFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+
+-- Container
+local container = Instance.new("Frame", scrollFrame)
+container.Size = UDim2.new(1, 0, 0, 3000)
+container.BackgroundTransparency = 1
+
+local layout = Instance.new("UIListLayout", container)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Padding = UDim.new(0, 6)
+
+-- Utils
+local function createLabel(text)
+	local lbl = Instance.new("TextLabel", container)
+	lbl.Size = UDim2.new(1, -20, 0, 26)
+	lbl.Position = UDim2.new(0, 10, 0, 0)
+	lbl.Text = text
+	lbl.Font = Enum.Font.GothamBold
+	lbl.TextSize = 16
+	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+	lbl.BackgroundTransparency = 1
+end
+
+local function createInput(placeholder)
+	local box = Instance.new("TextBox", container)
+	box.Size = UDim2.new(1, -20, 0, 28)
+	box.PlaceholderText = placeholder
+	box.Font = Enum.Font.Gotham
+	box.TextSize = 14
+	box.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+	box.TextColor3 = Color3.new(1, 1, 1)
+	box.ClearTextOnFocus = false
+	box.Text = ""
+	return box
+end
+
+local function createButton(text, callback)
+	local btn = Instance.new("TextButton", container)
+	btn.Size = UDim2.new(1, -20, 0, 32)
+	btn.Text = text
+	btn.Font = Enum.Font.Gotham
+	btn.TextSize = 14
+	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.MouseButton1Click:Connect(function()
+		pcall(callback)
+	end)
+	return btn
+end
+
+-- UI: Summoner
+createLabel("📦 Summoner (Script Loader)")
+local summonerInput = createInput("Enter script name")
+createButton("Summon", function()
+	local name = summonerInput.Text
+	if name ~= "" then
+		print("[Summoner] Loading file:", name)
+		-- ใช้ require, loadstring หรือไฟล์ใน ReplicatedStorage
+	end
+end)
+
+-- UI: Pet Summoner
+createLabel(" Summoner Pet")
+local petInput = createInput("Enter pet name to summon")
+createButton("Summon Pet", function()
+	local pet = petInput.Text
+	if table.find(validPets, pet) then
+		print("[SummonPet] Summoning", pet)
+		-- เรียก pet จากระบบในเกม เช่น RemoteEvent:FireServer(pet)
+	else
+		warn("❌ Pet not found in game database:", pet)
+	end
+end)
+
+-- UI: Egg Rate Changer
+createLabel("🥚 Rate Changer")
+local eggTypeInput = createInput("Enter Egg Type (Bug, Mythical, Dinosaur)")
+local ratePetInput = createInput("Pet Name")
+local rateInput = createInput("Rate (e.g. 25%)")
+
+createButton("Apply Rate", function()
+	print("🎯 Egg:", eggTypeInput.Text, "| Pet:", ratePetInput.Text, "| Rate:", rateInput.Text)
+	-- Apply rate logic (if server supports it)
+end)
