@@ -1,0 +1,26 @@
+-- Services
+local RunService = game:GetService("RunService")
+
+-- ตัวแปรเวลา (นับเป็นวินาทีจำลอง)
+local fakeTime = 0
+
+-- เร่งเวลา 100 วินาทีต่อวินาทีจริง
+local speedMultiplier = 100
+
+-- UI (ตัวอย่างแสดงเวลา)
+local ScreenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+local TimeLabel = Instance.new("TextLabel", ScreenGui)
+TimeLabel.Size = UDim2.new(0, 200, 0, 50)
+TimeLabel.Position = UDim2.new(0, 10, 0, 10)
+TimeLabel.BackgroundTransparency = 0.5
+TimeLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+TimeLabel.TextColor3 = Color3.new(1,1,1)
+TimeLabel.TextScaled = true
+
+-- อัปเดตเวลา
+RunService.Heartbeat:Connect(function(deltaTime)
+	fakeTime += deltaTime * speedMultiplier
+	local minutes = math.floor(fakeTime / 60)
+	local seconds = math.floor(fakeTime % 60)
+	TimeLabel.Text = string.format("Time: %02d:%02d", minutes, seconds)
+end)
